@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\IpAddress;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +13,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Run role and permission seeder first
+        $this->call(RoleAndPermissionSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Create super admin user
+        $superAdmin = User::factory()->create([
+            'name' => 'Super Admin',
+            'email' => 'admin@example.com',
         ]);
+        $superAdmin->assignRole('super-admin');
+
+        // Create regular users with IP addresses
+        $users = User::factory(5)->create();
+        foreach ($users as $user) {
+            $user->assignRole('user');
+            IpAddress::factory(rand(2, 5))->create(['user_id' => $user->id]);
+        }
+
+        // Create some IP addresses for the super admin
+        IpAddress::factory(3)->create(['user_id' => $superAdmin->id]);
     }
 }
