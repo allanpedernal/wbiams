@@ -1,0 +1,728 @@
+{
+    "info": {
+        "name": "WBIAMS - Web-Based IP Address Management System",
+        "description": "API collection for the Web-Based IP Address Management System. Includes both session-based (web) and token-based (API) authentication.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost",
+            "type": "string"
+        },
+        {
+            "key": "xsrf_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "api_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "API Token Authentication (JWT-like)",
+            "description": "Token-based authentication for API access. Use these endpoints for external API integrations.",
+            "item": [
+                {
+                    "name": "Login (Get Token)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.data && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('api_token', jsonData.data.token);",
+                                    "    console.log('Token saved:', jsonData.data.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\",\n    \"device_name\": \"postman\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "login"]
+                        },
+                        "description": "Login and receive a Bearer token (JWT-like). Token expires in 24 hours."
+                    }
+                },
+                {
+                    "name": "Get Current User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/user",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "user"]
+                        },
+                        "description": "Get current authenticated user details and token expiration"
+                    }
+                },
+                {
+                    "name": "Refresh Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.data && jsonData.data.token) {",
+                                    "    pm.collectionVariables.set('api_token', jsonData.data.token);",
+                                    "    console.log('New token saved:', jsonData.data.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/refresh",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "refresh"]
+                        },
+                        "description": "Refresh token before expiration. Revokes old token and issues a new one with fresh 24h expiration."
+                    }
+                },
+                {
+                    "name": "Logout (Revoke Token)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"revoke_all\": false\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/logout",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "auth", "logout"]
+                        },
+                        "description": "Revoke current token. Set revoke_all=true to revoke all tokens for this user."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "API IP Addresses (Token Auth)",
+            "description": "IP Address management via API with token authentication",
+            "item": [
+                {
+                    "name": "List IP Addresses",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/ip-addresses",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "ip-addresses"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create IP Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"ip_address\": \"10.0.0.1\",\n    \"label\": \"API Created Server\",\n    \"comment\": \"Created via API\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/ip-addresses",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "ip-addresses"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get IP Address",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "ip-addresses", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Update IP Address",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"label\": \"Updated via API\",\n    \"comment\": \"Updated comment\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "ip-addresses", "1"]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete IP Address",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{api_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "ip-addresses", "1"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Web Session Authentication",
+            "description": "Session-based authentication for web browser access (used by Inertia.js frontend)",
+            "item": [
+                {
+                    "name": "Get CSRF Cookie",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Extract XSRF-TOKEN from cookies",
+                                    "var xsrfCookie = pm.cookies.get('XSRF-TOKEN');",
+                                    "if (xsrfCookie) {",
+                                    "    pm.collectionVariables.set('xsrf_token', decodeURIComponent(xsrfCookie));",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/sanctum/csrf-cookie",
+                            "host": ["{{base_url}}"],
+                            "path": ["sanctum", "csrf-cookie"]
+                        },
+                        "description": "Get CSRF token for authentication"
+                    }
+                },
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["login"]
+                        },
+                        "description": "Login with email and password"
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/logout",
+                            "host": ["{{base_url}}"],
+                            "path": ["logout"]
+                        },
+                        "description": "Logout current user"
+                    }
+                },
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/register",
+                            "host": ["{{base_url}}"],
+                            "path": ["register"]
+                        },
+                        "description": "Register a new user"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "IP Addresses",
+            "item": [
+                {
+                    "name": "List All IP Addresses",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of all IP addresses"
+                    }
+                },
+                {
+                    "name": "Create IP Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"ip_address\": \"192.168.1.100\",\n    \"label\": \"Web Server\",\n    \"comment\": \"Production web server\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses"]
+                        },
+                        "description": "Create a new IP address record"
+                    }
+                },
+                {
+                    "name": "Create IPv6 Address",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"ip_address\": \"2001:0db8:85a3:0000:0000:8a2e:0370:7334\",\n    \"label\": \"IPv6 Server\",\n    \"comment\": \"IPv6 enabled server\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses"]
+                        },
+                        "description": "Create a new IPv6 address record"
+                    }
+                },
+                {
+                    "name": "Get Single IP Address",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses", "1"]
+                        },
+                        "description": "Get details of a specific IP address"
+                    }
+                },
+                {
+                    "name": "Update IP Address",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"label\": \"Updated Label\",\n    \"comment\": \"Updated comment\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses", "1"]
+                        },
+                        "description": "Update an existing IP address (label and comment only)"
+                    }
+                },
+                {
+                    "name": "Delete IP Address (Super Admin Only)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/ip-addresses/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["ip-addresses", "1"]
+                        },
+                        "description": "Delete an IP address (Super Admin only)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Audit Logs (Super Admin Only)",
+            "item": [
+                {
+                    "name": "List All Audit Logs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/audit-logs",
+                            "host": ["{{base_url}}"],
+                            "path": ["audit-logs"],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "log_name",
+                                    "value": "authentication",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "date_from",
+                                    "value": "2024-01-01",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "date_to",
+                                    "value": "2024-12-31",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get paginated list of all audit logs (Super Admin only)"
+                    }
+                },
+                {
+                    "name": "Get Single Audit Log",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/audit-logs/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["audit-logs", "1"]
+                        },
+                        "description": "Get details of a specific audit log entry"
+                    }
+                },
+                {
+                    "name": "Get User Activity History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/audit-logs/user/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["audit-logs", "user", "1"]
+                        },
+                        "description": "Get all activities by a specific user"
+                    }
+                },
+                {
+                    "name": "Get IP Address Activity History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/audit-logs/ip-address/1",
+                            "host": ["{{base_url}}"],
+                            "path": ["audit-logs", "ip-address", "1"]
+                        },
+                        "description": "Get all activities for a specific IP address"
+                    }
+                },
+                {
+                    "name": "Get Session Activities",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-XSRF-TOKEN",
+                                "value": "{{xsrf_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/audit-logs/session/{{session_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["audit-logs", "session", "{{session_id}}"]
+                        },
+                        "description": "Get all activities within a specific user session"
+                    }
+                }
+            ]
+        }
+    ]
+}
