@@ -10,10 +10,15 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
 
+/**
+ * Controller for managing two-factor authentication settings.
+ */
 class TwoFactorAuthenticationController extends Controller implements HasMiddleware
 {
     /**
      * Get the middleware that should be assigned to the controller.
+     *
+     * @return array<int, Middleware|string>  The middleware array
      */
     public static function middleware(): array
     {
@@ -24,6 +29,9 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
 
     /**
      * Show the user's two-factor authentication settings page.
+     *
+     * @param  TwoFactorAuthenticationRequest  $request  The validated 2FA request
+     * @return Response  The Inertia response with 2FA settings
      */
     public function show(TwoFactorAuthenticationRequest $request): Response
     {

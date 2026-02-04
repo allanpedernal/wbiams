@@ -12,10 +12,16 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller for managing user profile settings.
+ */
 class ProfileController extends Controller
 {
     /**
      * Show the user's profile settings page.
+     *
+     * @param  Request  $request  The incoming HTTP request
+     * @return Response  The Inertia response with profile settings
      */
     public function edit(Request $request): Response
     {
@@ -27,6 +33,9 @@ class ProfileController extends Controller
 
     /**
      * Update the user's profile information.
+     *
+     * @param  ProfileUpdateRequest  $request  The validated profile update request
+     * @return RedirectResponse  Redirect back to profile edit page
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -43,6 +52,9 @@ class ProfileController extends Controller
 
     /**
      * Delete the user's profile.
+     *
+     * @param  ProfileDeleteRequest  $request  The validated profile delete request
+     * @return RedirectResponse  Redirect to home page after deletion
      */
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
